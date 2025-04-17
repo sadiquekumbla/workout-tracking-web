@@ -11,12 +11,14 @@ interface WorkoutListProps {
   workouts: Workout[];
   onDelete: (workoutId: string) => void;
   onDeleteSet: (workoutId: string, exerciseIndex: number, setIndex: number) => void;
+  onToggleComplete?: (workoutId: string) => Promise<void>;
 }
 
 export function WorkoutList({
   workouts,
   onDelete,
-  onDeleteSet
+  onDeleteSet,
+  onToggleComplete
 }: WorkoutListProps) {
   const [expandedWorkouts, setExpandedWorkouts] = useState<Set<string>>(new Set());
   const sortedWorkouts = [...workouts].sort(
@@ -124,6 +126,19 @@ export function WorkoutList({
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (onToggleComplete) {
+                        onToggleComplete(workout.id);
+                      }
+                    }}
+                  >
+                    <CheckCircle2 className={`h-4 w-4 ${workout.completed ? 'text-green-500 fill-green-500' : 'text-muted-foreground'}`} />
+                  </Button>
                   <Button
                     variant="ghost"
                     size="icon"
