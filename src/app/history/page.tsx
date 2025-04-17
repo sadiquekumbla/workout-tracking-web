@@ -115,6 +115,59 @@ export default function WorkoutHistory() {
     }
   };
 
+  const handleDeleteSet = async (workoutId: string, exerciseIndex: number, setIndex: number) => {
+    if (!user) return;
+    
+    setLoading(true);
+    setError(null);
+    
+    try {
+      const workout = workouts.find((w) => w.id === workoutId);
+      if (!workout) return;
+
+      // Create a copy of the workout with the set removed
+      const updatedWorkout = { ...workout };
+      updatedWorkout.exercises[exerciseIndex].sets.splice(setIndex, 1);
+      
+      // If the exercise has no sets left, remove it
+      if (updatedWorkout.exercises[exerciseIndex].sets.length === 0) {
+        updatedWorkout.exercises.splice(exerciseIndex, 1);
+      }
+      
+      // If the workout has no exercises left, delete it
+      if (updatedWorkout.exercises.length === 0) {
+        await handleDeleteWorkout(workoutId);
+        return;
+      }
+      
+      const response = await fetch('/api/workouts', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(updatedWorkout),
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to update workout');
+      }
+      
+      const updatedWorkoutData = await response.json();
+      
+      setWorkouts(
+        workouts.map((w) =>
+          w.id === workoutId ? updatedWorkoutData : w
+        )
+      );
+    } catch (error: any) {
+      console.error('Error deleting set:', error);
+      setError(error.message || 'Failed to delete set');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleDeleteAllWorkouts = async () => {
     if (!user || workouts.length === 0) return;
     
@@ -213,6 +266,7 @@ export default function WorkoutHistory() {
             workouts={workouts}
             onToggleComplete={handleToggleComplete}
             onDelete={handleDeleteWorkout}
+            onDeleteSet={handleDeleteSet}
           />
         )}
       </div>
