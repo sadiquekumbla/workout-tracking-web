@@ -1,29 +1,30 @@
-# Workout Tracking Web Application
+# Workout Tracking Web App
 
-A modern web application for tracking workouts, built with Next.js, Firebase, and DeepSeek AI. The application allows users to log workouts manually or extract workout information from images using AI.
+A modern web application for tracking your workouts and fitness progress. Built with Next.js, Firebase, and TypeScript.
 
 ## Features
 
-- Log workouts manually with exercise name, sets, reps, and weight
-- Extract workout information from images using AI
-- View workout history with details for each workout
-- Track progress and total weight lifted
-- Add multiple workouts at once
-- Mark workouts as completed
-- Modern UI using Shadcn UI components
-- Data persistence using Firebase
+- 🔐 Secure authentication with Firebase
+- 📝 Track your workouts with detailed information
+- 📊 View your workout history
+- 🌙 Dark/Light mode support
+- 📱 Responsive design for all devices
+- ⚡ Fast and optimized performance
 
-## Prerequisites
+## Tech Stack
 
-- Node.js 18+ and npm
-- Firebase account
-- DeepSeek API key
+- **Framework:** Next.js 14
+- **Language:** TypeScript
+- **Styling:** Tailwind CSS
+- **Authentication:** Firebase Auth
+- **Database:** Firebase Firestore
+- **Deployment:** GitHub Pages
 
-## Setup
+## Getting Started
 
 1. Clone the repository:
    ```bash
-   git clone <repository-url>
+   git clone https://github.com/sadiquekumbla/workout-tracking-web.git
    cd workout-tracking-web
    ```
 
@@ -32,72 +33,42 @@ A modern web application for tracking workouts, built with Next.js, Firebase, an
    npm install
    ```
 
-3. Create a `.env.local` file in the root directory and add your Firebase and DeepSeek API credentials:
+3. Create a `.env.local` file with your Firebase configuration:
    ```
-   NEXT_PUBLIC_FIREBASE_API_KEY=your_firebase_api_key
-   NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=your_firebase_auth_domain
-   NEXT_PUBLIC_FIREBASE_PROJECT_ID=your_firebase_project_id
-   NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=your_firebase_storage_bucket
-   NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=your_firebase_messaging_sender_id
-   NEXT_PUBLIC_FIREBASE_APP_ID=your_firebase_app_id
-   NEXT_PUBLIC_DEEPSEEK_API_KEY=your_deepseek_api_key
+   NEXT_PUBLIC_FIREBASE_API_KEY=your_api_key
+   NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=your_auth_domain
+   NEXT_PUBLIC_FIREBASE_PROJECT_ID=your_project_id
+   NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=your_storage_bucket
+   NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=your_messaging_sender_id
+   NEXT_PUBLIC_FIREBASE_APP_ID=your_app_id
+   DEEPSEEK_API_KEY=your_deepseek_api_key
    ```
 
-4. Start the development server:
+4. Run the development server:
    ```bash
    npm run dev
    ```
 
 5. Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-## Usage
-
-1. **Adding a Workout**
-   - Click "Add Exercise" to add a new exercise
-   - Fill in the exercise name, number of reps, and weight for each set
-   - Add more sets using the "Add Set" button
-   - Add notes if needed
-   - Click "Save Workout" to save the workout
-
-2. **Extracting Workout from Image**
-   - Upload an image of your workout
-   - The AI will attempt to extract workout information
-   - Review and edit the extracted information if needed
-   - Save the workout
-
-3. **Managing Workouts**
-   - View your workout history
-   - Mark workouts as completed
-   - Delete workouts you no longer need
-
-## Technologies Used
-
-- Next.js 14
-- TypeScript
-- Firebase (Firestore)
-- DeepSeek AI
-- Shadcn UI
-- Tailwind CSS
-- date-fns
-
 ## Deployment
 
-This application is deployed on GitHub Pages. You can access it at: https://sadiquekumbla.github.io/workout-tracking-web/
+The app is automatically deployed to GitHub Pages when changes are pushed to the main branch. The deployment process:
 
-The deployment is automated using GitHub Actions. When changes are pushed to the main branch, the application is automatically built and deployed to GitHub Pages.
+1. Builds the Next.js application
+2. Generates static files
+3. Deploys to GitHub Pages
 
-To deploy your own instance:
-
-1. Fork this repository
-2. Set up your Firebase project and DeepSeek API key
-3. Add the required secrets to your GitHub repository:
-   - Go to Settings > Secrets and Variables > Actions
-   - Add all the environment variables listed in the Setup section
-4. Enable GitHub Pages in your repository settings:
-   - Go to Settings > Pages
-   - Set the source to "GitHub Actions"
-5. Push changes to the main branch to trigger the deployment
+Visit the live site at: https://sadiquekumbla.github.io/workout-tracking-web/
 
 ## Contributing
 
-Feel free to submit issues and enhancement requests!
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
