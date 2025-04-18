@@ -80,6 +80,24 @@ A modern web application for tracking workouts, built with Next.js, Firebase, an
 - Tailwind CSS
 - date-fns
 
+## Deployment
+
+This application is deployed on GitHub Pages. You can access it at: https://sadiquekumbla.github.io/workout-tracking-web/
+
+The deployment is automated using GitHub Actions. When changes are pushed to the main branch, the application is automatically built and deployed to GitHub Pages.
+
+To deploy your own instance:
+
+1. Fork this repository
+2. Set up your Firebase project and DeepSeek API key
+3. Add the required secrets to your GitHub repository:
+   - Go to Settings > Secrets and Variables > Actions
+   - Add all the environment variables listed in the Setup section
+4. Enable GitHub Pages in your repository settings:
+   - Go to Settings > Pages
+   - Set the source to "GitHub Actions"
+5. Push changes to the main branch to trigger the deployment
+
 ## Contributing
 
 Feel free to submit issues and enhancement requests!
