@@ -18,8 +18,10 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
     const unsubscribe = onAuthStateChange((user) => {
       setUser(user);
       setLoading(false);
@@ -58,6 +60,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     signInWithEmail,
     logout
   };
+
+  if (!mounted) {
+    return null;
+  }
 
   return (
     <AuthContext.Provider value={value}>
