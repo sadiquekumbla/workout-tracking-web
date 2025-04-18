@@ -10,6 +10,7 @@ import { LogOut, History } from 'lucide-react';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import Link from 'next/link';
 import { toast } from 'sonner';
+import { addWorkout } from '@/lib/firebase-client';
 
 export default function Home() {
   const [loading, setLoading] = useState(false);
@@ -29,18 +30,7 @@ export default function Home() {
         createdAt: new Date().toISOString()
       };
       
-      const response = await fetch('/api/workouts', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(workoutWithUser),
-      });
-      
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to add workout');
-      }
+      const workout = await addWorkout(workoutWithUser);
       
       toast.success('Workout added successfully!', {
         duration: 3000,

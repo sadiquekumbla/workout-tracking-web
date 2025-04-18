@@ -11,6 +11,7 @@ import { ThemeToggle } from '@/components/ThemeToggle';
 import Link from 'next/link';
 import { toast } from 'sonner';
 import { User } from 'firebase/auth';
+import { getWorkouts, updateWorkout, deleteWorkout } from '@/lib/firebase-client';
 
 interface ApiResponse {
   workouts: Workout[];
@@ -38,15 +39,8 @@ export default function WorkoutHistory() {
     setError(null);
     
     try {
-      const response = await fetch(`/api/workouts?userId=${user.uid}`);
-      
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to fetch workouts');
-      }
-      
-      const data: ApiResponse = await response.json();
-      setWorkouts(data.workouts);
+      const workouts = await getWorkouts(user.uid);
+      setWorkouts(workouts);
     } catch (error: any) {
       console.error('Error fetching workouts:', error);
       setError(error.message || 'Failed to fetch workouts');
@@ -65,27 +59,11 @@ export default function WorkoutHistory() {
       const workout = workouts.find((w) => w.id === workoutId);
       if (!workout) return;
 
-      const response = await fetch('/api/workouts', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          id: workoutId,
-          completed: !workout.completed,
-        }),
-      });
-      
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to update workout');
-      }
-      
-      const updatedWorkout: Workout = await response.json();
+      await updateWorkout(workoutId, { completed: true });
       
       setWorkouts(
         workouts.map((w) =>
-          w.id === workoutId ? { ...w, completed: updatedWorkout.completed } : w
+          w.id === workoutId ? { ...w, completed: true } : w
         )
       );
     } catch (error: any) {
@@ -103,14 +81,7 @@ export default function WorkoutHistory() {
     setError(null);
     
     try {
-      const response = await fetch(`/api/workouts?id=${workoutId}`, {
-        method: 'DELETE',
-      });
-      
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to delete workout');
-      }
+      await deleteWorkout(workoutId);
       
       setWorkouts(workouts.filter((w) => w.id !== workoutId));
     } catch (error: any) {
@@ -146,24 +117,11 @@ export default function WorkoutHistory() {
         return;
       }
       
-      const response = await fetch('/api/workouts', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(updatedWorkout),
-      });
-      
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to update workout');
-      }
-      
-      const updatedWorkoutData: Workout = await response.json();
+      await updateWorkout(workoutId, updatedWorkout);
       
       setWorkouts(
         workouts.map((w) =>
-          w.id === workoutId ? updatedWorkoutData : w
+          w.id === workoutId ? updatedWorkout : w
         )
       );
     } catch (error: any) {
@@ -187,14 +145,7 @@ export default function WorkoutHistory() {
     try {
       // Delete each workout one by one
       for (const workout of workouts) {
-        const response = await fetch(`/api/workouts?id=${workout.id}`, {
-          method: 'DELETE',
-        });
-        
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.error || `Failed to delete workout ${workout.id}`);
-        }
+        await deleteWorkout(workout.id);
       }
       
       // Clear the workouts state
