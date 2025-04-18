@@ -10,10 +10,16 @@ import { LogOut, ArrowLeft, Trash2 } from 'lucide-react';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import Link from 'next/link';
 import { toast } from 'sonner';
+import { User } from 'firebase/auth';
+
+interface ApiResponse {
+  workouts: Workout[];
+  error?: string;
+}
 
 export default function WorkoutHistory() {
   const [workouts, setWorkouts] = useState<Workout[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const { user, logout } = useAuth();
 
@@ -39,7 +45,7 @@ export default function WorkoutHistory() {
         throw new Error(errorData.error || 'Failed to fetch workouts');
       }
       
-      const data = await response.json();
+      const data: ApiResponse = await response.json();
       setWorkouts(data.workouts);
     } catch (error: any) {
       console.error('Error fetching workouts:', error);
@@ -75,7 +81,7 @@ export default function WorkoutHistory() {
         throw new Error(errorData.error || 'Failed to update workout');
       }
       
-      const updatedWorkout = await response.json();
+      const updatedWorkout: Workout = await response.json();
       
       setWorkouts(
         workouts.map((w) =>
@@ -153,7 +159,7 @@ export default function WorkoutHistory() {
         throw new Error(errorData.error || 'Failed to update workout');
       }
       
-      const updatedWorkoutData = await response.json();
+      const updatedWorkoutData: Workout = await response.json();
       
       setWorkouts(
         workouts.map((w) =>
