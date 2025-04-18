@@ -26,6 +26,7 @@ export default function Home() {
       const workoutWithUser = {
         ...workoutData,
         userId: user.uid,
+        createdAt: new Date().toISOString()
       };
       
       const response = await fetch('/api/workouts', {

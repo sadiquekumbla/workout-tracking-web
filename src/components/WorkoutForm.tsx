@@ -4,9 +4,10 @@ import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { Exercise, Workout } from '@/types/workout';
 import { extractWorkoutFromImage } from '@/lib/gemini';
-import { Plus, Trash2, Upload, Loader2, CheckCircle2, Check, Copy, X, Dumbbell, Quote } from 'lucide-react';
+import { Plus, Trash2, Upload, Loader2, CheckCircle2, Check, Copy, X, Dumbbell, Timer, SkipForward, PlusCircle } from 'lucide-react';
 import { toast } from 'sonner';
-import { MotivationalMessage } from '@/components/MotivationalMessage';
+import { WorkoutTextInput } from './workout-text-input';
+import { ParsedExercise } from '@/lib/workout-parser';
 
 // Add motivational quotes array
 const motivationalQuotes = [
@@ -47,10 +48,15 @@ export function WorkoutForm({ onSubmit }: WorkoutFormProps) {
     totalSets: number;
     totalWeight: number;
     exercises: Exercise[];
-    motivationalQuote: string;
   } | null>(null);
-  const [currentMotivationalQuote, setCurrentMotivationalQuote] = useState<string | null>(null);
-  const [showMotivationalQuote, setShowMotivationalQuote] = useState(false);
+  
+  // Countdown timer states
+  const [countdownActive, setCountdownActive] = useState(false);
+  const [countdownSeconds, setCountdownSeconds] = useState(50); // Default 50 seconds
+  const [countdownDisplay, setCountdownDisplay] = useState('50');
+  const [countdownTimer, setCountdownTimer] = useState<NodeJS.Timeout | null>(null);
+  const [currentQuote, setCurrentQuote] = useState<string | null>(null);
+  const [showQuote, setShowQuote] = useState(false);
 
   // Auto-save when exercises, date, or notes change
   useEffect(() => {
@@ -76,6 +82,45 @@ export function WorkoutForm({ onSubmit }: WorkoutFormProps) {
     };
   }, [exercises, date, notes]);
 
+  // Countdown timer effect
+  useEffect(() => {
+    if (countdownActive) {
+      const timer = setInterval(() => {
+        setCountdownSeconds(prev => {
+          if (prev <= 1) {
+            clearInterval(timer);
+            setCountdownActive(false);
+            setCountdownTimer(null);
+            
+            // Show a random motivational quote
+            const randomQuote = motivationalQuotes[Math.floor(Math.random() * motivationalQuotes.length)];
+            setCurrentQuote(randomQuote);
+            setShowQuote(true);
+            
+            // Auto-hide the quote after 5 seconds
+            setTimeout(() => {
+              setShowQuote(false);
+            }, 5000);
+            
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+      
+      setCountdownTimer(timer);
+      
+      return () => {
+        clearInterval(timer);
+      };
+    }
+  }, [countdownActive]);
+  
+  // Update countdown display
+  useEffect(() => {
+    setCountdownDisplay(countdownSeconds.toString());
+  }, [countdownSeconds]);
+
   const handleAutoSave = () => {
     // Only save if there's at least one exercise
     if (exercises.length > 0) {
@@ -83,16 +128,10 @@ export function WorkoutForm({ onSubmit }: WorkoutFormProps) {
         date,
         exercises,
         completed: false,
-        notes
+        notes,
+        userId: 'temp', // This will be replaced with the actual user ID in the API
+        createdAt: new Date().toISOString()
       });
-      
-      // Only show success message if there's at least one exercise with a name
-      if (exercises.some(ex => ex.name.trim() !== '')) {
-        toast.success('Workout auto-saved!', {
-          duration: 2000,
-          position: 'bottom-right',
-        });
-      }
     }
   };
 
@@ -102,6 +141,11 @@ export function WorkoutForm({ onSubmit }: WorkoutFormProps) {
         toast.success('Workout summary copied to clipboard!', {
           duration: 3000,
           position: 'bottom-right',
+          className: 'bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm',
+          style: {
+            borderRadius: '8px',
+            padding: '12px 16px',
+          }
         });
       })
       .catch(err => {
@@ -109,6 +153,11 @@ export function WorkoutForm({ onSubmit }: WorkoutFormProps) {
         toast.error('Failed to copy to clipboard', {
           duration: 3000,
           position: 'bottom-right',
+          className: 'bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm',
+          style: {
+            borderRadius: '8px',
+            padding: '12px 16px',
+          }
         });
       });
   };
@@ -230,10 +279,15 @@ export function WorkoutForm({ onSubmit }: WorkoutFormProps) {
     updatedExercises[exerciseIndex].sets.splice(setIndex + 1, 0, newSet);
     setExercises(updatedExercises);
     
-    // Show success message
-    toast.success(`Set ${setIndex + 1} of "${exercises[exerciseIndex].name}" copied!`, {
+    // Show success message with modern toast design
+    toast.success(`Set ${setIndex + 1} copied`, {
       duration: 2000,
       position: 'bottom-right',
+      className: 'bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm',
+      style: {
+        borderRadius: '8px',
+        padding: '12px 16px',
+      }
     });
   };
 
@@ -250,10 +304,15 @@ export function WorkoutForm({ onSubmit }: WorkoutFormProps) {
     
     setExercises(updatedExercises);
     
-    // Show success message
-    toast.success(`Set ${setIndex + 1} deleted!`, {
+    // Show success message with modern toast design
+    toast.success(`Set ${setIndex + 1} deleted`, {
       duration: 2000,
       position: 'bottom-right',
+      className: 'bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm',
+      style: {
+        borderRadius: '8px',
+        padding: '12px 16px',
+      }
     });
   };
 
@@ -270,6 +329,11 @@ export function WorkoutForm({ onSubmit }: WorkoutFormProps) {
       toast.error('Image file is too large. Please use an image under 5MB.', {
         duration: 3000,
         position: 'bottom-right',
+        className: 'bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm',
+        style: {
+          borderRadius: '8px',
+          padding: '12px 16px',
+        }
       });
       return;
     }
@@ -279,6 +343,11 @@ export function WorkoutForm({ onSubmit }: WorkoutFormProps) {
       toast.error('Please upload a valid image file (JPEG, PNG, or WebP).', {
         duration: 3000,
         position: 'bottom-right',
+        className: 'bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm',
+        style: {
+          borderRadius: '8px',
+          padding: '12px 16px',
+        }
       });
       return;
     }
@@ -297,6 +366,11 @@ export function WorkoutForm({ onSubmit }: WorkoutFormProps) {
           toast.info('Processing image with OCR... This may take a few seconds.', {
             duration: 3000,
             position: 'bottom-right',
+            className: 'bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm',
+            style: {
+              borderRadius: '8px',
+              padding: '12px 16px',
+            }
           });
           
           const extractedExercises = await extractWorkoutFromImage(base64);
@@ -308,11 +382,21 @@ export function WorkoutForm({ onSubmit }: WorkoutFormProps) {
             toast.success(`Successfully detected ${extractedExercises.length} exercises from your image!`, {
               duration: 3000,
               position: 'bottom-right',
+              className: 'bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm',
+              style: {
+                borderRadius: '8px',
+                padding: '12px 16px',
+              }
             });
           } else {
             toast.error('No exercises could be detected in the image. Please try again with a clearer image or add exercises manually.', {
               duration: 3000,
               position: 'bottom-right',
+              className: 'bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm',
+              style: {
+                borderRadius: '8px',
+                padding: '12px 16px',
+              }
             });
           }
         } catch (error) {
@@ -320,6 +404,11 @@ export function WorkoutForm({ onSubmit }: WorkoutFormProps) {
           toast.error('Error processing image. Please try again or add exercises manually.', {
             duration: 3000,
             position: 'bottom-right',
+            className: 'bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm',
+            style: {
+              borderRadius: '8px',
+              padding: '12px 16px',
+            }
           });
         } finally {
           setIsLoading(false);
@@ -331,20 +420,98 @@ export function WorkoutForm({ onSubmit }: WorkoutFormProps) {
       toast.error('Error reading file. Please try again.', {
         duration: 3000,
         position: 'bottom-right',
+        className: 'bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm',
+        style: {
+          borderRadius: '8px',
+          padding: '12px 16px',
+        }
       });
       setIsLoading(false);
     }
   };
 
+  const startCountdown = (exerciseIndex: number, setIndex: number) => {
+    // Mark the set as completed
+    updateSet(exerciseIndex, setIndex, 'completed', true);
+    
+    // Start the countdown
+    setCountdownActive(true);
+    setCountdownSeconds(50); // Reset to default
+  };
+  
+  const stopCountdown = () => {
+    if (countdownTimer) {
+      clearInterval(countdownTimer);
+    }
+    setCountdownActive(false);
+    setCountdownTimer(null);
+  };
+  
+  const skipCountdown = () => {
+    stopCountdown();
+    setCountdownSeconds(0);
+    
+    // Show a random motivational quote
+    const randomQuote = motivationalQuotes[Math.floor(Math.random() * motivationalQuotes.length)];
+    setCurrentQuote(randomQuote);
+    setShowQuote(true);
+    
+    // Auto-hide the quote after 5 seconds
+    setTimeout(() => {
+      setShowQuote(false);
+    }, 5000);
+  };
+  
+  const extendCountdown = (seconds: number) => {
+    setCountdownSeconds(prev => prev + seconds);
+  };
+
+  const handleParsedExercises = (parsedExercises: ParsedExercise[]) => {
+    const newExercises = parsedExercises.map(exercise => ({
+      name: exercise.name,
+      sets: Array(exercise.sets).fill(null).map(() => ({
+        reps: exercise.reps,
+        weight: exercise.weight || 0,
+        completed: false
+      }))
+    }));
+
+    setExercises([...exercises, ...newExercises]);
+    toast.success('Exercises added successfully!', {
+      duration: 2000,
+      position: 'bottom-right',
+    });
+  };
+
   return (
     <form className="space-y-6">
-      {showMotivationalQuote && currentMotivationalQuote && (
-        <div className="p-4 bg-gradient-to-r from-green-50 to-blue-50 dark:from-green-900/20 dark:to-blue-900/20 rounded-lg border border-green-200 dark:border-green-800 shadow-sm">
-          <div className="flex items-start gap-3">
-            <Quote className="h-5 w-5 text-green-500 mt-0.5" />
-            <div>
-              <p className="italic text-gray-700 dark:text-gray-300">"{currentMotivationalQuote}"</p>
-            </div>
+      {showQuote && currentQuote && (
+        <div className="p-3 bg-gradient-to-r from-green-50 to-blue-50 dark:from-green-900/20 dark:to-blue-900/20 rounded-lg border border-green-200 dark:border-green-800 shadow-sm">
+          <p className="italic text-gray-700 dark:text-gray-300 text-center">"{currentQuote}"</p>
+        </div>
+      )}
+      
+      {countdownActive && (
+        <div className="fixed bottom-4 left-1/2 transform -translate-x-1/2 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm p-3 rounded-full shadow-md border border-gray-200 dark:border-gray-700 z-50 flex items-center gap-3">
+          <div className="text-2xl font-medium">{countdownDisplay}s</div>
+          <div className="h-6 w-px bg-gray-300 dark:bg-gray-600"></div>
+          <div className="flex gap-1">
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={skipCountdown}
+              className="h-8 w-8 p-0 rounded-full"
+            >
+              <SkipForward className="h-4 w-4" />
+            </Button>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={() => extendCountdown(30)}
+              className="h-8 w-8 p-0 rounded-full"
+            >
+              <PlusCircle className="h-4 w-4" />
+            </Button>
           </div>
         </div>
       )}
@@ -416,6 +583,8 @@ export function WorkoutForm({ onSubmit }: WorkoutFormProps) {
           </div>
         )}
         
+        <WorkoutTextInput onAddExercises={handleParsedExercises} />
+        
         <div className="space-y-4">
           <div className="flex justify-between items-center">
             <h3 className="text-lg font-medium">Exercises</h3>
@@ -461,19 +630,20 @@ export function WorkoutForm({ onSubmit }: WorkoutFormProps) {
 
               <div className="space-y-2">
                 {/* Header */}
-                <div className="grid grid-cols-6 gap-2 text-sm font-medium text-muted-foreground mb-2">
+                <div className="grid grid-cols-7 gap-2 text-sm font-medium text-muted-foreground mb-2">
                   <div className="text-center">SET</div>
-                  <div className="text-center">KG</div>
+                  <div className="text-center">Volume</div>
                   <div className="text-center flex items-center justify-center">
                     <Dumbbell className="h-4 w-4" />
                   </div>
                   <div className="text-center">REPS</div>
+                  <div className="text-center">REST</div>
                   <div></div>
                 </div>
                 
                 {/* Sets */}
                 {exercise.sets.map((set, setIndex) => (
-                  <div key={setIndex} className="grid grid-cols-6 gap-2 items-center mb-2">
+                  <div key={setIndex} className="grid grid-cols-7 gap-2 items-center mb-2">
                     <div className="font-medium text-center">{setIndex + 1}</div>
                     <div className="text-muted-foreground text-center text-sm">
                       {set.weight}kg × {set.reps}
@@ -482,7 +652,7 @@ export function WorkoutForm({ onSubmit }: WorkoutFormProps) {
                       type="text"
                       value={set.weight || ''}
                       onChange={(e) => {
-                        const value = e.target.value === '' ? '' : Number(e.target.value);
+                        const value = e.target.value === '' ? 0 : Number(e.target.value);
                         updateSet(exerciseIndex, setIndex, 'weight', value);
                       }}
                       className="w-full text-center"
@@ -495,7 +665,7 @@ export function WorkoutForm({ onSubmit }: WorkoutFormProps) {
                       type="text"
                       value={set.reps || ''}
                       onChange={(e) => {
-                        const value = e.target.value === '' ? '' : Number(e.target.value);
+                        const value = e.target.value === '' ? 0 : Number(e.target.value);
                         updateSet(exerciseIndex, setIndex, 'reps', value);
                       }}
                       className="w-full text-center"
@@ -503,6 +673,18 @@ export function WorkoutForm({ onSubmit }: WorkoutFormProps) {
                       min="0"
                       placeholder="REPS"
                     />
+                    <div className="flex justify-center">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="h-8 w-8 p-0"
+                        onClick={() => startCountdown(exerciseIndex, setIndex)}
+                        disabled={countdownActive}
+                      >
+                        <Timer className="h-4 w-4" />
+                      </Button>
+                    </div>
                     <div className="text-center">
                       {savedSets[exerciseIndex]?.[setIndex] ? (
                         <span className="text-green-500 text-sm font-medium">Saved</span>
@@ -552,16 +734,6 @@ export function WorkoutForm({ onSubmit }: WorkoutFormProps) {
                       ...prev,
                       [exerciseIndex]: true
                     }));
-                    
-                    // Show motivational message on page instead of toast
-                    const randomQuote = motivationalQuotes[Math.floor(Math.random() * motivationalQuotes.length)];
-                    setCurrentMotivationalQuote(randomQuote);
-                    setShowMotivationalQuote(true);
-                    
-                    // Auto-hide the quote after 5 seconds
-                    setTimeout(() => {
-                      setShowMotivationalQuote(false);
-                    }, 5000);
                   }}
                   className={`flex-1 text-sm ${
                     finishedExercises[exerciseIndex] 
@@ -608,15 +780,14 @@ export function WorkoutForm({ onSubmit }: WorkoutFormProps) {
                 acc + exercise.sets.reduce((setAcc, set) => setAcc + (set.weight || 0), 0), 0
               );
               
-              // Get a random motivational quote
-              const randomQuote = motivationalQuotes[Math.floor(Math.random() * motivationalQuotes.length)];
-              
               // Save the completed workout
               onSubmit({
                 date,
                 exercises: updatedExercises,
                 completed: true,
-                notes
+                notes,
+                userId: 'temp', // This will be replaced with the actual user ID in the API
+                createdAt: new Date().toISOString()
               });
               
               // Set the workout summary and show it
@@ -624,8 +795,7 @@ export function WorkoutForm({ onSubmit }: WorkoutFormProps) {
                 totalExercises,
                 totalSets,
                 totalWeight,
-                exercises: updatedExercises,
-                motivationalQuote: randomQuote
+                exercises: updatedExercises
               });
               setShowSummary(true);
               
