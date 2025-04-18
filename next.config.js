@@ -7,8 +7,9 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
-  basePath: '/workout-tracking-web',
-  assetPrefix: '/workout-tracking-web/',
+  basePath: process.env.NODE_ENV === 'production' ? '/workout-tracking-web' : '',
+  assetPrefix: process.env.NODE_ENV === 'production' ? '/workout-tracking-web/' : '',
+  trailingSlash: true,
 }
 
 module.exports = nextConfig 
